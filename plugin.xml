@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-imageloadplugin" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>ImageLoadPlugin</name>
+    <js-module name="ImageLoadPlugin" src="www/ImageLoadPlugin.js">
+        <clobbers target="cordova.plugins.ImageLoadPlugin" />
+    </js-module>
+    <platform name="android">
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="ImageLoadPlugin">
+                <param name="android-package" value="cordova.plugin.imageloadplugin.ImageLoadPlugin" />
+            </feature>
+        </config-file>
+        <config-file parent="/*" target="AndroidManifest.xml">
+        </config-file>
+        <source-file src="src/android/ImageLoadPlugin.java" target-dir="src/cordova.plugin.imageloadplugin/ImageLoadPlugin" />
+    </platform>
+</plugin>

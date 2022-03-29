@@ -1,0 +1,25 @@
+{
+  "name": "cordova-plugin-imageloadplugin",
+  "version": "0.0.1",
+  "description": "Cordova plugin for load image",
+  "cordova": {
+    "id": "cordova-plugin-imageloadplugin",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dudduss77/cordova-load-image-plugin.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dudduss77/cordova-load-image-plugin/issues"
+  },
+  "homepage": "https://github.com/dudduss77/cordova-load-image-plugin#readme"
+}
