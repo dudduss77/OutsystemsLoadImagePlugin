@@ -11,6 +11,7 @@
             </feature>
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
         </config-file>
         <source-file src="src/android/ImageLoadPlugin.java" target-dir="src/cordova.plugin.imageloadplugin/ImageLoadPlugin" />
     </platform>
