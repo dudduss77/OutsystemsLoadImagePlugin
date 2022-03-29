@@ -2,7 +2,7 @@
 <plugin id="cordova-plugin-imageloadplugin" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>ImageLoadPlugin</name>
     <js-module name="ImageLoadPlugin" src="www/ImageLoadPlugin.js">
-        <clobbers target="cordova.plugins.ImageLoadPlugin" />
+        <clobbers target="window.plugins.imageloadPlugin" />
     </js-module>
     <platform name="android">
         <config-file parent="/*" target="res/xml/config.xml">
