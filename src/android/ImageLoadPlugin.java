@@ -66,8 +66,9 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
                 //ArrayList<Bitmap> thumbnailsBitmap = new ArrayList<Bitmap>();
 
-                JSONObject imagesData = new JSONObject();
+
                 while(cur.moveToNext()) {
+                    JSONObject imagesData = new JSONObject();
                     long id = cur.getLong(idColumn);
                     String fileName = cur.getString(idColumnName);
                     String bucketName = cur.getString(idBucketName);
@@ -83,22 +84,28 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
                     byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-                    try {
-                        byteArrayOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        byteArrayOutputStream.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    byte[] encodedImage = Base64.encode(byteArray, Base64.NO_WRAP);
 
-                    byte[] encodedImage = Base64.encode(byteArray, Base64.NO_WRAP);
+                    String encodedImage = Base64.encodeToString(byteArray, Base64.NO_WRAP);
 
                     imagesData.put("FileName", fileName);
                     imagesData.put("BucketName", bucketName);
-                    imagesData.put("ImageData", new String(encodedImage));
+//                    imagesData.put("ImageData", new String(encodedImage));
+                    imagesData.put("ImageData", encodedImage);
 
                     ret.put(imagesData);
+
+                    //imagesData = null;
+
                     //thumbnailsBitmap.add(thumbnail);
-                    //Log.i("Filename", "fileName: " + fileName);
-                    Log.i("TAG", "execute: " + new String(encodedImage));
+                    Log.i("Filename", "fileName: " + fileName);
+                    //Log.i("TAG", "execute: " + new String(encodedImage));
 //                    Log.i("Filename", "Json: " + imagesData);
                     //Log.i("Filename", "fileUri: " + contentUri);
                     //Log.i("Filename", "bucketName: " + bucketName);
@@ -112,6 +119,7 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
 
             String message = "Hallo i working";
+            Log.i("TT", "ret" +  ret.toString());
             this.coolMethod(ret.toString(), callbackContext);
             return true;
         }
