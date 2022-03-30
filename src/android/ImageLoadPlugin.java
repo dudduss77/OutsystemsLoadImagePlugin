@@ -74,12 +74,12 @@ public class ImageLoadPlugin extends CordovaPlugin {
                         Bitmap thumbnail = null;
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                             try {
-                                thumbnail = context.getContentResolver().loadThumbnail(contentUri, new Size(100, 100), null);
+                                thumbnail = context.getContentResolver().loadThumbnail(contentUri, new Size(250, 250), null);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         } else {
-                            thumbnail = MediaStore.Images.Thumbnails.getThumbnail(context.getContentResolver(), id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+                            thumbnail = MediaStore.Images.Thumbnails.getThumbnail(context.getContentResolver(), id, MediaStore.Images.Thumbnails.MINI_KIND, null);
                         }
 
                         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
