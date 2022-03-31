@@ -40,11 +40,14 @@ public class ImageLoadPlugin extends CordovaPlugin {
         Context context = cordova.getContext();
         Log.i("Cur", "action: " + action);
         if (action.equals("coolMethod")) {
+//            Log.i("TAG", "args: " + args.getString(0));
+            String bucketName = args.getJSONObject(0).getString("BucketName");
+            Log.i("TAG", "args: " + bucketName);
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        coolMethod(getImageFromStorage(context).toString(), callbackContext);
+                        coolMethod(getImageFromStorage(context, bucketName).toString(), callbackContext);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -132,7 +135,7 @@ public class ImageLoadPlugin extends CordovaPlugin {
         return jsonArray.toString();
     }
 
-    private JSONArray getImageFromStorage(Context context) throws JSONException {
+    private JSONArray getImageFromStorage(Context context, String inBucketName) throws JSONException {
         String[] projection = new String[] {
                 MediaStore.Images.ImageColumns.DISPLAY_NAME,
                 MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
@@ -140,14 +143,14 @@ public class ImageLoadPlugin extends CordovaPlugin {
                 MediaStore.Images.ImageColumns.DATE_ADDED
         };
 
-        //String selection = MediaStore.Images.Media.DATE_ADDED + ">= ?";
-
+        String selection = MediaStore.Images.Media.BUCKET_DISPLAY_NAME + "=?";
+        String[] selectionArgs = {inBucketName};
         //String sortOrder = MediaStore.Images.Media.DISPLAY_NAME + " ASC";
         String sortOrder = MediaStore.Images.ImageColumns.DATE_ADDED + " ASC";
 
         ContentResolver cr = context.getContentResolver();
 
-        Cursor cur = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, sortOrder);
+        Cursor cur = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, sortOrder);
 
         //Log.i("Cur", "onCreate: " + cur);
 
