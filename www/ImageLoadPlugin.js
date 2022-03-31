@@ -4,6 +4,10 @@ exports.coolMethod = function (arg0, success, error) {
     exec(success, error, 'ImageLoadPlugin', 'coolMethod', [arg0]);
 };
 
+exports.getBucketName = function(arg0, success, error) {
+    exec(success, error, 'ImageLoadPlugin', 'getBucketName', [arg0])
+};
+
 
 // function ImageLoadPlugin() {}
 
