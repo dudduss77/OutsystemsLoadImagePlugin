@@ -140,13 +140,14 @@ public class ImageLoadPlugin extends CordovaPlugin {
                 MediaStore.Images.ImageColumns.DISPLAY_NAME,
                 MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.Images.ImageColumns._ID,
-                MediaStore.Images.ImageColumns.DATE_ADDED
+                MediaStore.Images.ImageColumns.DATE_ADDED,
+                MediaStore.Images.ImageColumns.DATA
+
         };
 
         String selection = MediaStore.Images.Media.BUCKET_DISPLAY_NAME + "=?";
         String[] selectionArgs = {inBucketName};
-        //String sortOrder = MediaStore.Images.Media.DISPLAY_NAME + " ASC";
-        String sortOrder = MediaStore.Images.ImageColumns.DATE_ADDED + " ASC";
+        String sortOrder = MediaStore.Images.ImageColumns.DATE_ADDED + " DESC";
 
         ContentResolver cr = context.getContentResolver();
 
@@ -161,12 +162,13 @@ public class ImageLoadPlugin extends CordovaPlugin {
                 int idColumn = cur.getColumnIndexOrThrow(MediaStore.Images.ImageColumns._ID);
                 int idColumnName = cur.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DISPLAY_NAME);
                 int idBucketName = cur.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME);
-
+                int idPath = cur.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DATA);
                 while(cur.moveToNext()) {
                     JSONObject imagesData = new JSONObject();
                     long id = cur.getLong(idColumn);
                     String fileName = cur.getString(idColumnName);
                     String bucketName = cur.getString(idBucketName);
+                    String path = cur.getString(idPath);
 
                     Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
                     Bitmap thumbnail = null;
@@ -190,13 +192,14 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
                     imagesData.put("FileName", fileName);
                     imagesData.put("BucketName", bucketName);
+                    imagesData.put("Path", path);
                     imagesData.put("ImageData", encodedImage);
                     ret.put(imagesData);
 
                     //Log.i("Filename", "fileName: " + fileName);
                     //Log.i("TAG", "execute: " + new String(encodedImage));
 //                    Log.i("Filename", "Json: " + imagesData);
-                    //Log.i("Filename", "fileUri: " + contentUri);
+//                    Log.i("Filename", "fileUri: " + contentUri);
                     //Log.i("Filename", "bucketName: " + bucketName);
                     //Log.i("Filename", "encodedImage: " + encodedImage);
                     //Log.i("Filename", "encodedImageLength: " + encodedImage.length());
