@@ -81,7 +81,11 @@ public class ImageLoadPlugin extends CordovaPlugin {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
-                    getBucketName(getBucketNameFun(context), callbackContext);
+                    try {
+                        getBucketName(getBucketNameFun(context), callbackContext);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -91,7 +95,7 @@ public class ImageLoadPlugin extends CordovaPlugin {
         return false;
     }
 
-    private  String getBucketNameFun(Context context) {
+    private  String getBucketNameFun(Context context) throws JSONException {
         String[] projection = new String[] {
                 MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME
         };
@@ -117,7 +121,15 @@ public class ImageLoadPlugin extends CordovaPlugin {
             cur.close();
         }
 
-        return bucketList.toString();
+        JSONArray jsonArray = new JSONArray();
+
+        for(String name : bucketList) {
+            JSONObject obj = new JSONObject();
+            obj.put("BucketName", name);
+            jsonArray.put(obj);
+        }
+
+        return jsonArray.toString();
     }
 
     private JSONArray getImageFromStorage(Context context) throws JSONException {
