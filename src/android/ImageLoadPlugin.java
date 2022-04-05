@@ -5,7 +5,6 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,20 +16,16 @@ import android.util.Size;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 
-import org.apache.cordova.PermissionHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -46,35 +41,24 @@ public class ImageLoadPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         Context context = cordova.getContext();
-        Log.i("Cur", "action: " + action);
-        if (action.equals("coolMethod")) {
-            Log.i("ttt", "json " + args);
+        if (action.equals("getImagesData")) {
             String bucketName = args.getJSONObject(0).getString("BucketName");
             int limit = args.getJSONObject(0).getInt("Limit");
             int offset = args.getJSONObject(0).getInt("Offset");
-            Log.i("TAG", "args: " + bucketName);
-            Log.i("TAG", "args: " + limit);
-            Log.i("TAG", "args: " + offset);
-            cordova.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        coolMethod(getImageFromStorage(context, bucketName, limit, offset).toString(), callbackContext);
-                    } catch (JSONException | ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            cordova.getThreadPool().execute(() -> {
+                try {
+                    getImagesData(getImageFromStorage(context, bucketName, limit, offset).toString(), callbackContext);
+                } catch (JSONException | ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
                 }
             });
             return true;
         } else if (action.equals("getBucketName")) {
-            cordova.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        getBucketName(getBucketNameFun(context), callbackContext);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+            cordova.getThreadPool().execute(() -> {
+                try {
+                    getBucketName(getBucketNameFun(context), callbackContext);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             });
             return true;
@@ -92,7 +76,7 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
         Cursor cur = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, sortOrder);
 
-        HashSet <String> bucketList = new HashSet<String>();
+        HashSet <String> bucketList = new HashSet<>();
         try {
             if(cur != null) {
                 int idBucketName = cur.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME);
@@ -135,7 +119,7 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
         ContentResolver cr = context.getContentResolver();
 
-        Cursor cur = null;
+        Cursor cur;
         if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             Bundle queryArgs = new Bundle();
             String[] sortArgs = {MediaStore.Images.ImageColumns.DATE_ADDED};
@@ -165,56 +149,53 @@ public class ImageLoadPlugin extends CordovaPlugin {
 
                     Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
 
-                    future.add(executor.submit(new Callable<JSONObject>() {
-                        @Override
-                        public JSONObject call() throws Exception {
-                            JSONObject imagesData = new JSONObject();
-                            Bitmap thumbnail = null;
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                                try {
-                                    thumbnail = context.getContentResolver().loadThumbnail(contentUri, new Size(500, 500), null);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                thumbnail = MediaStore.Images.Thumbnails.getThumbnail(context.getContentResolver(), id, MediaStore.Images.Thumbnails.MINI_KIND, null);
-                            }
-
-                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                            assert thumbnail != null;
-                            thumbnail.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
-
-                            byte[] byteArray = byteArrayOutputStream.toByteArray();
-
-                            String encodedImage = Base64.encodeToString(byteArray, Base64.NO_WRAP);
-
+                    future.add(executor.submit(() -> {
+                        JSONObject imagesData = new JSONObject();
+                        Bitmap thumbnail = null;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             try {
-                                imagesData.put("id", id);
-                            } catch (JSONException e) {
+                                thumbnail = context.getContentResolver().loadThumbnail(contentUri, new Size(500, 500), null);
+                            } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            try {
-                                imagesData.put("FileName", fileName);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                imagesData.put("BucketName", bucketName);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                imagesData.put("Path", path);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                imagesData.put("ImageData", encodedImage);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            return imagesData;
+                        } else {
+                            thumbnail = MediaStore.Images.Thumbnails.getThumbnail(context.getContentResolver(), id, MediaStore.Images.Thumbnails.MINI_KIND, null);
                         }
+
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        assert thumbnail != null;
+                        thumbnail.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
+
+                        byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+                        String encodedImage = Base64.encodeToString(byteArray, Base64.NO_WRAP);
+
+                        try {
+                            imagesData.put("id", id);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            imagesData.put("FileName", fileName);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            imagesData.put("BucketName", bucketName);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            imagesData.put("Path", path);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            imagesData.put("ImageData", encodedImage);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return imagesData;
                     }));
                     Log.i("TAG", "getImageFromStorage: " + cur.getPosition());
                 }
@@ -235,7 +216,7 @@ public class ImageLoadPlugin extends CordovaPlugin {
         return ret;
     }
 
-    private void coolMethod(String message, CallbackContext callbackContext) {
+    private void getImagesData(String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
         } else {

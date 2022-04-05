@@ -1,7 +1,7 @@
 var exec = require('cordova/exec');
 
-exports.coolMethod = function (arg0, success, error) {
-    exec(success, error, 'ImageLoadPlugin', 'coolMethod', [arg0]);
+exports.getImagesData = function (arg0, success, error) {
+    exec(success, error, 'ImageLoadPlugin', 'getImagesData', [arg0]);
 };
 
 exports.getBucketName = function(arg0, success, error) {
