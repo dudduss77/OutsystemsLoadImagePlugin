@@ -5,6 +5,9 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,6 +64,13 @@ public class ImageLoadPlugin extends CordovaPlugin {
                     e.printStackTrace();
                 }
             });
+            return true;
+        } else if(action.equals("getImage")) {
+            String path = args.getJSONObject(0).getString("ImagePath");
+            int quality = args.getJSONObject(0).getInt("ImageQuality");
+            int targetWidth = args.getJSONObject(0).getInt("ImageTargetWidth");
+            cordova.getThreadPool().execute(() -> getImageCallback(getCompressedAndResizedImages(path, quality, targetWidth), callbackContext));
+//            this.getImageCallback(getCompressedAndResizedImages(path, quality, targetWidth), callbackContext);
             return true;
         }
         return false;
@@ -216,6 +226,47 @@ public class ImageLoadPlugin extends CordovaPlugin {
         return ret;
     }
 
+    private String getCompressedAndResizedImages(String path, int quality, int targetWidth) {
+        ExifInterface exif = null;
+        try {
+            exif= new ExifInterface(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assert exif != null;
+        int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
+
+        Matrix matrix = new Matrix();
+        if (orientation == 6) {
+            matrix.postRotate(90);
+        } else if (orientation == 3) {
+            matrix.postRotate(180);
+        } else if (orientation == 8) {
+            matrix.postRotate(270);
+        }
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+
+        if(targetWidth > 0) {
+            options.inSampleSize = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0) / targetWidth;
+        } else {
+            options.inSampleSize = 1;
+        }
+
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+        options.inJustDecodeBounds = false;
+
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
+
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+        String encodedImage = Base64.encodeToString(byteArray, Base64.NO_WRAP);
+        return encodedImage;
+    }
+
     private void getImagesData(String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
@@ -224,6 +275,14 @@ public class ImageLoadPlugin extends CordovaPlugin {
         }
     }
     private void getBucketName(String message, CallbackContext callbackContext) {
+        if (message != null && message.length() > 0) {
+            callbackContext.success(message);
+        } else {
+            callbackContext.error("Expected one non-empty string argument.");
+        }
+    }
+
+    private void getImageCallback(String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
         } else {
