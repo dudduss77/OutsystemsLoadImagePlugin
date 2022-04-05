@@ -189,6 +189,11 @@ public class ImageLoadPlugin extends CordovaPlugin {
                             String encodedImage = Base64.encodeToString(byteArray, Base64.NO_WRAP);
 
                             try {
+                                imagesData.put("id", id);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            try {
                                 imagesData.put("FileName", fileName);
                             } catch (JSONException e) {
                                 e.printStackTrace();
